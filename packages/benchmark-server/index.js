@@ -34,12 +34,16 @@ function showStatistic() {
 
 	const message = `
 	=====================================
-	average of ${length} time:
+	total of ${length} time:
 
 	packages: ${total.count}
 	bytes: ${total.size}
-	packageSize: ${total.size / total.count} byte
 	spent: ${total.spent} ms
+
+	average of ${length} time:
+
+	packageSize: ${total.size / total.count} byte
+	spent: ${total.spent / length} ms
 	package/s: ${total.count / total.spent}
 	byte/s: ${total.size / total.spent}
 
@@ -49,7 +53,7 @@ function showStatistic() {
 
 	packages: ${last.count}
 	bytes: ${last.size}
-	packageSize: ${last.size / last.count} byte
+	averagePackageSize: ${last.size / last.count} byte
 	spent: ${last.spent} ms
 	package/s: ${last.count / last.spent}
 	byte/s: ${last.size / last.spent}
