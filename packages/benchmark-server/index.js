@@ -44,6 +44,7 @@ function showStatistic() {
 
 	packageSize: ${total.size / total.count} byte
 	spent: ${total.spent / length} ms
+	delay: ${total.spent / total.count} ms
 	package/s: ${total.count / total.spent}
 	byte/s: ${total.size / total.spent}
 
@@ -55,6 +56,7 @@ function showStatistic() {
 	bytes: ${last.size}
 	averagePackageSize: ${last.size / last.count} byte
 	spent: ${last.spent} ms
+	delay: ${last.spent / last.count} ms
 	package/s: ${last.count / last.spent}
 	byte/s: ${last.size / last.spent}
 	=====================================
