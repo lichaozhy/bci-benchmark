@@ -1,6 +1,50 @@
 const dgram = require('dgram');
+const DataParser = require('./parser');
 const server = dgram.createSocket('udp4');
 
+const K = Math.pow(1024, 1);
+const M = Math.pow(1024, 2);
+const G = Math.pow(1024, 3);
+
+function Speedometer(period) {
+	let intervalId = null;
+	let total = 0;
+
+	function push(piece) {
+		total += piece;
+	}
+
+	function reset() {
+		total = 0;
+	}
+
+	function stop() {
+		if (intervalId) {
+			clearInterval(intervalId);
+		}
+		reset();
+	}
+
+	function start() {
+		stop();
+		setInterval(() => {
+			const speed = total / (period / 1000);
+			console.log(`${speed / M} MB/s`);
+			reset();
+		}, period);
+	}
+
+	return {
+		push,
+		stop,
+		start
+	}
+}
+
+const parser = DataParser();
+const speedometer = Speedometer(1000);
+speedometer.start();
+const data = [];
 const record = [];
 
 const status = {
@@ -46,7 +90,7 @@ function showStatistic() {
 	spent: ${total.spent / length} ms
 	delay: ${total.spent / total.count} ms
 	package/s: ${total.count / (total.spent / 1000)}
-	byte/s: ${total.size / (total.spent / 1000)}
+	MB/s: ${(total.size / (total.spent / 1000) / M)}
 
 	-------------------------------------
 
@@ -58,7 +102,7 @@ function showStatistic() {
 	spent: ${last.spent} ms
 	delay: ${last.spent / last.count} ms
 	package/s: ${last.count / (last.spent / 1000)}
-	byte/s: ${last.size / (last.spent / 1000)}
+	MB/s: ${(last.size / (last.spent / 1000) / M)}
 	=====================================
 	`;
 
@@ -86,8 +130,13 @@ server.on('error', (err) => {
 });
 
 server.on('message', (msg, rinfo) => {
+	const { size } = rinfo;
+	const result = parser(msg);
+	data.push(result);
+	speedometer.push(size);
+
 	const time = Date.now();
-	status.size += rinfo.size;
+	status.size += size;
 
 	if (!status.timeOutId) {
 		status.lastStartTime = time;
