@@ -1,6 +1,36 @@
+const config = {
+	port: 41234,
+	parse: true
+};
+
+const reg = /--(\S+)=(\S+)/;
+const argv = {};
+process.argv.forEach(item => {
+	const result = item.match(reg);
+	if (result) {
+		argv[result[1]] = result[2];
+	}
+});
+
+if (argv.port) {
+	config.port = Number(argv.port);
+}
+
+if (argv.parse) {
+	if (argv.parse === 'true') {
+		config.parse = true;
+	} else {
+		config.parse = false;
+	}
+}
+
+
+console.log(config);
+
 const dgram = require('dgram');
 const DataParser = require('./parser');
 const server = dgram.createSocket('udp4');
+
 
 const K = Math.pow(1024, 1);
 const M = Math.pow(1024, 2);
@@ -27,7 +57,7 @@ function Speedometer(period) {
 
 	function start() {
 		stop();
-		setInterval(() => {
+		intervalId = setInterval(() => {
 			const speed = total / (period / 1000);
 			console.log(`${speed / M} MB/s`);
 			reset();
@@ -44,7 +74,8 @@ function Speedometer(period) {
 const parser = DataParser();
 const speedometer = Speedometer(1000);
 speedometer.start();
-const data = [];
+const data = {};
+const array = [];
 const record = [];
 
 const status = {
@@ -131,8 +162,12 @@ server.on('error', (err) => {
 
 server.on('message', (msg, rinfo) => {
 	const { size } = rinfo;
-	const result = parser(msg);
-	data.push(result);
+	if (config.parse) {
+		const result = parser(msg);
+		data[Date.now()] = result;
+		// array.push(result);
+	}
+
 	speedometer.push(size);
 
 	const time = Date.now();
@@ -154,4 +189,4 @@ server.on('listening', () => {
   console.log(`server listening ${address.address}:${address.port}`);
 });
 
-server.bind(41234, '127.0.0.1');
+server.bind(config.port, '127.0.0.1');
